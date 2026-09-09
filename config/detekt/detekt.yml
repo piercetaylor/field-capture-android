@@ -1,0 +1,49 @@
+# detekt configuration. Applied on top of detekt's defaults (buildUponDefaultConfig = true in
+# the root build.gradle.kts). Only deviations from the defaults are listed.
+
+build:
+  maxIssues: 0
+
+style:
+  MaxLineLength:
+    maxLineLength: 140
+    excludeCommentStatements: true
+  MagicNumber:
+    active: false          # geometry, plate sizes and API levels are self-describing in context
+  ReturnCount:
+    max: 4
+  ForbiddenComment:
+    active: false
+  UnusedPrivateMember:
+    active: true
+  WildcardImport:
+    active: true
+
+complexity:
+  LongMethod:
+    threshold: 80
+  LongParameterList:
+    functionThreshold: 8
+    constructorThreshold: 12
+  TooManyFunctions:
+    thresholdInFiles: 20
+    thresholdInClasses: 20
+    thresholdInObjects: 20
+  CyclomaticComplexMethod:
+    threshold: 18
+  NestedBlockDepth:
+    threshold: 5
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable', 'Test']
+  FunctionMaxLength:
+    active: false          # backticked test names read as sentences
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+
+performance:
+  SpreadOperator:
+    active: false

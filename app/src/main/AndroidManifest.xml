@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Permissions are declared here (not in library manifests) so the complete list is reviewable
+  in one place.
+
+  Runtime-permission flow (see PLAN.md, "UI walkthrough"):
+    1. First launch asks for nothing. The home screen works with imported layouts only.
+    2. Entering Planter or Walk mode requests, in one system dialog each:
+         ACCESS_FINE_LOCATION (+ COARSE, required alongside FINE on API 31+)
+         RECORD_AUDIO
+         CAMERA (walk mode and photo capture only)
+       Denial degrades the mode (planter without GPS keeps planting order and audio; walk mode
+       without camera records audio + track) and shows a persistent banner explaining what is off.
+    3. POST_NOTIFICATIONS (API 33+) is requested when the first foreground recording service
+       starts, because the tracking notification is how a user finds a recording that is still
+       running after the screen turns off.
+    4. BLUETOOTH_CONNECT (API 31+) is requested only when the user pairs an external trigger
+       button or an external GNSS receiver from Settings.
+    5. Background location is never requested: recording runs in a foreground service while
+       the app is in use, which is the case supported by the while-in-use rules on API 34+.
+    6. Storage: the app writes to its own app-specific directory (no permission needed) and
+       exports through the Storage Access Framework, so no storage permissions are declared.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Location for planter fixes and walk-mode track -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- Voice notes and walk-mode video audio -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Walk-mode video and plot photos -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Foreground services keep GPS/video/audio alive while the screen is off (API 34+ requires typed FGS) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- External trigger button and external GNSS receiver (optional features) -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <!-- Weather/soil fetch is user-initiated and optional; the app is fully functional offline -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Keep the app installable on tablets without a rear camera or GPS; features degrade -->
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+
+    <application
+        android:name=".FieldCaptureApp"
+        android:label="Field Capture"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="false"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <!-- allowBackup=false and empty extraction rules: nursery coordinates and media must not be
+             copied to cloud backup. Data leaves the device only through an explicit export. -->
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="unspecified"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Planter mode: location + microphone. Walk mode adds camera. Declared in :core:location. -->
+        <service
+            android:name="org.fieldcapture.location.RecordingForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="location|microphone|camera" />
+
+        <!-- WorkManager is initialised manually so Hilt can inject workers (see FieldCaptureApp). -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
+    </application>
+</manifest>

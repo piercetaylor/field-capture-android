@@ -43,3 +43,6 @@ For this project the reviewer should push hardest on the things a field device g
 
 - `core.autocrlf` is `true` on the maintainer's machine. `.gitattributes` pins the repo to LF but keeps `gradlew.bat` as CRLF, because `cmd.exe` mis-parses an LF batch file, and marks the wrapper jar and image assets binary.
 - Use `./gradlew`, never a system Gradle, so the wrapper's pinned version is what runs.
+- `gradlew` must stay mode 100755 in git. A Windows checkout does not set the executable bit, so a file added from Windows lands as 100644 and every Linux CI job dies with exit code 126 before Gradle starts. Record it with `git update-index --chmod=+x gradlew`.
+- Hilt's Gradle plugin transforms bytecode through AGP's `ScopedArtifact` API, so the two versions move together. Hilt 2.59 references `ScopedArtifact.POST_COMPILATION_CLASSES`, which AGP 8.13 does not define; since 8.13.2 is the newest stable AGP (9.x is alpha), Hilt is held at 2.58. Revisit both together, not separately.
+- No JDK or Android SDK is installed on the maintainer's machine, so every Gradle gate is verified only by CI. Say so plainly rather than implying a local build passed.

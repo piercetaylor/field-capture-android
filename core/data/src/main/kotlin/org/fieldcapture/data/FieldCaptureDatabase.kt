@@ -33,7 +33,10 @@ interface PlotDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(plots: List<PlotEntity>)
 
-    @Query("UPDATE plots SET centroidLat = :lat, centroidLon = :lon, coordAccuracyM = :acc, coordSource = :source, plantedAt = :at WHERE plotId = :plotId")
+    @Query(
+        "UPDATE plots SET centroidLat = :lat, centroidLon = :lon, coordAccuracyM = :acc, " +
+            "coordSource = :source, plantedAt = :at WHERE plotId = :plotId",
+    )
     suspend fun setPlanted(plotId: String, lat: Double, lon: Double, acc: Float, source: String, at: Long)
 }
 

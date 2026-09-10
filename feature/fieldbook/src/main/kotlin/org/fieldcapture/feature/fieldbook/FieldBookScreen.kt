@@ -39,6 +39,8 @@ class FieldBookViewModel @Inject constructor() : ViewModel() {
     private val _state = MutableStateFlow(FieldBookUiState())
     val state: StateFlow<FieldBookUiState> = _state.asStateFlow()
 
+    // The parameter is part of the fixed interface; the body arrives in M1.
+    @Suppress("UnusedParameter")
     fun onAction(action: FieldBookAction) {
         // M1: import + plot list; M2: map + export.
         _state.value = _state.value

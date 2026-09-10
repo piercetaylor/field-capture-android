@@ -45,6 +45,8 @@ class IntegrationsViewModel @Inject constructor() : ViewModel() {
     private val _state = MutableStateFlow(IntegrationsUiState())
     val state: StateFlow<IntegrationsUiState> = _state.asStateFlow()
 
+    // The parameter is part of the fixed interface; the body arrives in M3.
+    @Suppress("UnusedParameter")
     fun onAction(action: IntegrationsAction) {
         // M3: enqueue OneTimeWorkRequests with a NetworkType.CONNECTED constraint.
         _state.value = _state.value
